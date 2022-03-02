@@ -1,0 +1,44 @@
+#!/bin/bash
+
+cache_dir="$HOME/.jumpo-cache"
+cache="$cache_dir/data"
+
+if [ ! -d "$cache_dir" ]; then
+	mkdir "$cache_dir"
+fi
+touch "$cache"	
+
+function usage() {
+	echo "usage: jumpo <command> [alias] [path] [editor]"
+	echo ""
+	echo "Commands:"
+	echo "    add     add an alias"
+	echo "    rm      remove alias"
+}
+
+if [ "$1" = "add" ]; then
+	if [ $# -gt 3 ]; then 
+		if [ -z "$(grep "$2" < "$cache")" ]; then
+			echo "$2   $3   $4" >> "$cache"
+		else
+			echo "error: Alias already exists."
+		fi
+	else
+		usage
+	fi 
+elif [ "$1" = "rm" ]; then
+	sed -i '/^$2/d' "$cache"
+elif [ $# -lt 1 ] || [ "$1" == "--help" ]; then
+	usage
+else
+	alias=$1
+	if [ ! -z "$(grep "$alias" < "$cache")" ]; then
+		path=$(grep "$alias" < "$cache" | head -n 1 | awk '{print $2}')
+		editor=$(grep "$alias" < "$cache" | head -n 1 | awk '{print $3}')
+		
+		cd "$path"
+		$editor .
+	else
+		echo "error: Alias not found."
+	fi
+fi
