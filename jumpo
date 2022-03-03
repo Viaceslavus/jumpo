@@ -1,12 +1,12 @@
 #!/bin/bash
 
 cache_dir="$HOME/.jumpo-cache"
-cache="$cache_dir/data"
+cache="$cache_dir/aliases"
 
 if [ ! -d "$cache_dir" ]; then
 	mkdir "$cache_dir"
 fi
-touch "$cache"	
+touch "$cache"
 
 function usage() {
 	echo "usage: jumpo <command> [alias] [path] [editor]"
@@ -17,17 +17,35 @@ function usage() {
 }
 
 if [ "$1" = "add" ]; then
-	if [ $# -gt 3 ]; then 
-		if [ -z "$(grep "$2" < "$cache")" ]; then
-			echo "$2   $3   $4" >> "$cache"
+	if [ $# -gt 2 ]; then
+		real_path=$(realpath "$3")
+		if [ $# -gt 3 ]; then
+			if [ -z "$(grep "$4" < "$cache")" ]; then
+				echo "$4   $real_path   $2" >> "$cache"
+			else
+				echo "error: Alias already exists."
+			fi
 		else
-			echo "error: Alias already exists."
+			alias_name=$(echo "$real_path" | awk -F "/" '{print $NF}')
+			if [ -z "$(grep "$alias_name" < "$cache")" ]; then
+				echo "$alias_name   $real_path   $2" >> "$cache"
+			else
+				echo "error: Alias already exists."
+			fi
 		fi
 	else
 		usage
-	fi 
+	fi
 elif [ "$1" = "rm" ]; then
-	sed -i '/^$2/d' "$cache"
+	echo "rm $2"
+	sed -i "/^$2/d" "$cache"
+elif [ "$1" = "show" ]; then
+	if [ $# -gt 1 ]; then
+		name="$2"
+		awk -v alias="$name" '$1 == alias {print $0}' "$cache"
+	else
+		cat "$cache"
+	fi
 elif [ $# -lt 1 ] || [ "$1" == "--help" ]; then
 	usage
 else
@@ -35,7 +53,7 @@ else
 	if [ ! -z "$(grep "$alias" < "$cache")" ]; then
 		path=$(grep "$alias" < "$cache" | head -n 1 | awk '{print $2}')
 		editor=$(grep "$alias" < "$cache" | head -n 1 | awk '{print $3}')
-		
+
 		cd "$path"
 		$editor .
 	else
