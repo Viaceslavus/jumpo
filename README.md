@@ -1,6 +1,8 @@
-# Jump to your project directory with one command.
+## Back to work with one shell command.
 
 ### Install:
 ```
-wget -O /usr/bin/jumpo https://raw.githubusercontent.com/Viaceslavus/jumpo/master/jumpo && echo "alias='source jumpo'" >> ~/.bashrc
+wget -O /usr/bin/jumpo https://raw.githubusercontent.com/Viaceslavus/jumpo/master/jumpo && 
+sudo chmod +x /usr/bin/jumpo && 
+echo "alias jumpo='source jumpo'" >> ~/.bashrc
 ```
