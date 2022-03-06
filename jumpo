@@ -8,26 +8,39 @@ if [ ! -d "$cache_dir" ]; then
 fi
 touch "$cache"
 
+function config_template() {
+	echo "Alias |    Path    | Editor"
+}
+
 function usage() {
-	echo "usage: jumpo <command> [alias] [path] [editor]"
+	echo "Usage: "
 	echo ""
-	echo "Commands:"
-	echo "    add     add an alias"
-	echo "    rm      remove alias"
+	echo "   jumpo add <editor> [path] [alias]"
+	echo "                      default path is current working directory." 
+	echo "			    default alias in directory name."
+	echo "   jumpo rm <alias>"
+	echo "   jumpo edit <alias> <path> <editor>"
+	echo "   jumpo show [alias]"
+	echo "   jumpo [--help]"
+}
+
+function alias_exists() {
+	name="$1"
+	[ -n "$(awk -v alias="$name" '$1 == alias {print $0}' "$cache")" ]
 }
 
 if [ "$1" = "add" ]; then
 	if [ $# -gt 2 ]; then
 		real_path=$(realpath "$3")
 		if [ $# -gt 3 ]; then
-			if [ -z "$(grep "$4" < "$cache")" ]; then
+			if ! alias_exists "$4"; then
 				echo "$4   $real_path   $2" >> "$cache"
 			else
 				echo "error: Alias already exists."
 			fi
 		else
 			alias_name=$(echo "$real_path" | awk -F "/" '{print $NF}')
-			if [ -z "$(grep "$alias_name" < "$cache")" ]; then
+			if ! alias_exists "$alias_name"; then
 				echo "$alias_name   $real_path   $2" >> "$cache"
 			else
 				echo "error: Alias already exists."
@@ -37,23 +50,30 @@ if [ "$1" = "add" ]; then
 		usage
 	fi
 elif [ "$1" = "rm" ]; then
-	echo "rm $2"
-	sed -i "/^$2/d" "$cache"
+	[ -n "$2" ] && alias_exists "$2" && sed -i "/^$2/d" "$cache"
+elif [ "$1" = "edit" ]; then
+	echo "comming soon..."
 elif [ "$1" = "show" ]; then
 	if [ $# -gt 1 ]; then
-		name="$2"
-		awk -v alias="$name" '$1 == alias {print $0}' "$cache"
+		if alias_exists "$2"; then
+			config_template 
+			awk -v alias="$name" '$1 == alias {print $0}' "$cache"
+		fi
 	else
-		cat "$cache"
+		if [ -s "$cache" ]; then
+			config_template
+			cat "$cache"
+		fi
 	fi
 elif [ $# -lt 1 ] || [ "$1" == "--help" ]; then
 	usage
 else
-	alias=$1
-	if [ ! -z "$(grep "$alias" < "$cache")" ]; then
-		path=$(grep "$alias" < "$cache" | head -n 1 | awk '{print $2}')
-		editor=$(grep "$alias" < "$cache" | head -n 1 | awk '{print $3}')
-
+	name=$1
+	if alias_exists "$name"; then
+		path="$(awk -v alias="$name" '$1 == alias {print $2}' "$cache")"
+		editor="$(awk -v alias="$name" '$1 == alias {print $3}' "$cache")"
+		echo "$path"
+		echo "$(awk -v alias="$name" '$1 == alias {print $0}' "$cache")"
 		cd "$path"
 		$editor .
 	else
