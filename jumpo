@@ -2,14 +2,28 @@
 
 cache_dir="$HOME/.jumpo-cache"
 cache="$cache_dir/aliases"
+tmp_cache="$cache_dir/tmp"
 
 if [ ! -d "$cache_dir" ]; then
 	mkdir "$cache_dir"
 fi
 touch "$cache"
+touch "$tmp_cache"
 
 function config_template() {
 	echo "Alias |    Path    | Editor"
+}
+
+function rm_line() {
+	eval "sed -i '$1d' $cache"
+}
+
+function alias_not_found() {
+	echo "error: Alias not found."
+}
+
+function alias_already_exists() {
+	echo "error: Alias already exists."
 }
 
 function usage() {
@@ -19,7 +33,7 @@ function usage() {
 	echo "                      default path is current working directory." 
 	echo "			    default alias in directory name."
 	echo "   jumpo rm <alias>"
-	echo "   jumpo edit <alias> <path> <editor>"
+	echo "   jumpo edit <alias>"
 	echo "   jumpo show [alias]"
 	echo "   jumpo [--help]"
 }
@@ -36,23 +50,61 @@ if [ "$1" = "add" ]; then
 			if ! alias_exists "$4"; then
 				echo "$4   $real_path   $2" >> "$cache"
 			else
-				echo "error: Alias already exists."
+				alias_already_exists
 			fi
 		else
 			alias_name=$(echo "$real_path" | awk -F "/" '{print $NF}')
 			if ! alias_exists "$alias_name"; then
 				echo "$alias_name   $real_path   $2" >> "$cache"
 			else
-				echo "error: Alias already exists."
+				alias_already_exists
 			fi
 		fi
 	else
 		usage
 	fi
 elif [ "$1" = "rm" ]; then
-	[ -n "$2" ] && alias_exists "$2" && sed -i "/^$2/d" "$cache"
+	rm_alias="$2"
+	if [ -n "$rm_alias" ]; then
+		if alias_exists "$rm_alias"; then 
+			rm_line_num=$(awk  -v alias="$rm_alias"	'{
+								if($1 == alias)
+									print NR
+							}' "$cache")
+			rm_line "$rm_line_num"
+		else
+			alias_not_found
+		fi			
+	else
+		usage	
+	fi
 elif [ "$1" = "edit" ]; then
-	echo "comming soon..."
+	if [ $# -gt 1 ]; then
+		if alias_exists "$2"; then
+			edit_alias="$2"
+			read -p "Enter new alias name: " _new_alias
+			read -p "Enter new project path: " _new_path
+			read -p "Enter new editor name: " _new_editor
+			edit_line_num=$(awk  -v alias="$edit_alias"	'{
+								if($1 == alias)
+									print NR
+							}' "$cache")
+			[ -n "$_new_alias" ] && 
+			new_file=$(awk -v line="$edit_line_num" -v new="$_new_alias" '{ if(NR == line) { sub($1, new); } print $0 }' "$cache") &&
+			echo "$new_file" > "$cache"
+			[ -n "$_new_path" ] && 
+			new_file=$(awk -v line="$edit_line_num" -v new="$_new_path" '{ if(NR == line) { sub($2, new); } print $0 }' "$cache") &&
+			echo "$new_file" > "$cache"
+			[ -n "$_new_editor" ] && 
+			new_file=$(awk -v line="$edit_line_num" -v new="$_new_editor" '{ if(NR == line) { sub($3, new); } print $0 }' "$cache") &&
+			echo "$new_file" > "$cache"
+			echo "Changes were saved."
+		else 
+			alias_not_found
+		fi
+	else
+		usage
+	fi
 elif [ "$1" = "show" ]; then
 	if [ $# -gt 1 ]; then
 		if alias_exists "$2"; then
@@ -77,6 +129,6 @@ else
 		cd "$path"
 		$editor .
 	else
-		echo "error: Alias not found."
+		alias_not_found
 	fi
 fi
