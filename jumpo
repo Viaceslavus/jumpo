@@ -1,6 +1,6 @@
 #!/bin/bash
 
-cache_dir="$HOME/.jumpo-cache"
+cache_dir="$HOME/.cache/.jumpo"
 cache="$cache_dir/aliases"
 tmp_cache="$cache_dir/tmp"
 
