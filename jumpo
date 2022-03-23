@@ -124,9 +124,10 @@ else
 	if alias_exists "$name"; then
 		path="$(awk -v alias="$name" '$1 == alias {print $2}' "$cache")"
 		editor="$(awk -v alias="$name" '$1 == alias {print $3}' "$cache")"
-		echo "$path"
-		echo "$(awk -v alias="$name" '$1 == alias {print $0}' "$cache")"
 		cd "$path"
+		if [[ -d ".git" ]]; then
+			git status
+		fi
 		$editor .
 	else
 		alias_not_found
