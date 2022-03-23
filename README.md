@@ -2,10 +2,10 @@
 ---
 </br>
 
-Add your project to jumpo list.
+Add your project to jumpo list. 
+Jump to your project directory with some git info and open an editor with one command.  
 ![usage](images/usage.png)
-
-Jump to directory and open an editor with one command.
+  
 ![opened_vscode](images/opened_vscode.png)
 
 ### Install:
