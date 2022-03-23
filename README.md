@@ -12,5 +12,6 @@ Jump to directory and open an editor with one command.
 ```
 sudo wget -O /usr/bin/jumpo https://raw.githubusercontent.com/Viaceslavus/jumpo/master/jumpo && 
 sudo chmod +x /usr/bin/jumpo && 
-echo "alias jumpo='source jumpo'" >> ~/.bashrc
+echo "alias jumpo='source jumpo'" >> ~/.bash_aliases
 ```
+* replace '.bash_aliases' with your preferred config file.
