@@ -29,13 +29,15 @@ function alias_already_exists() {
 function usage() {
 	echo "Usage: "
 	echo ""
-	echo "   jumpo add <editor> [path] [alias]"
-	echo "                      default path is current working directory." 
-	echo "			    default alias in directory name."
+	echo "   jumpo add <editor> <path> [alias]"
+	echo "              		    relative path is accepted" 
+	echo "			    default alias in directory name"
 	echo "   jumpo rm <alias>"
 	echo "   jumpo edit <alias>"
 	echo "   jumpo show [alias]"
 	echo "   jumpo [--help]"
+	echo ""
+	echo "   jumpo <alias> [-c|--cd-only]"
 }
 
 function alias_exists() {
@@ -128,7 +130,9 @@ else
 		if [[ -d ".git" ]]; then
 			git status
 		fi
-		$editor .
+		if [[ "$2" != "--cd-only" ]] && [[ "$2" != "-c" ]]; then
+			$editor .
+		fi
 	else
 		alias_not_found
 	fi
