@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 cache_dir="$HOME/.cache/.jumpo"
 cache="$cache_dir/aliases"
@@ -10,23 +10,24 @@ fi
 touch "$cache"
 touch "$tmp_cache"
 
-function config_template() {
-	echo -e "Alias | Path | Editor\n"
+config_template() {
+	echo "Alias | Path | Editor"
+	echo ""
 }
 
-function rm_line() {
+rm_line() {
 	eval "sed -i '$1d' $cache"
 }
 
-function alias_not_found() {
+alias_not_found() {
 	echo "error: Alias not found."
 }
 
-function alias_already_exists() {
+alias_already_exists() {
 	echo "error: Alias already exists."
 }
 
-function usage() {
+usage() {
 	echo "Usage: "
 	echo ""
 	echo "   jumpo add <editor> <path> [alias]"
@@ -40,7 +41,7 @@ function usage() {
 	echo "   jumpo <alias> [-c|--cd-only]"
 }
 
-function alias_exists() {
+alias_exists() {
 	name="$1"
 	[ -n "$(awk -v alias="$name" '$1 == alias {print $0}' "$cache")" ]
 }
@@ -84,9 +85,12 @@ elif [ "$1" = "edit" ]; then
 	if [ $# -gt 1 ]; then
 		if alias_exists "$2"; then
 			edit_alias="$2"
-			read -p "Enter new alias name: " _new_alias
-			read -p "Enter new project path: " _new_path
-			read -p "Enter new editor name: " _new_editor
+			printf "Enter new alias name: " 
+			read -r _new_alias
+			printf "Enter new project path: "
+			read -r _new_path
+			printf "Enter new editor name: "
+			read -r _new_editor
 			edit_line_num=$(awk  -v alias="$edit_alias"	'{
 								if($1 == alias)
 									print NR
@@ -119,7 +123,7 @@ elif [ "$1" = "show" ]; then
 			column -t < "$cache"
 		fi
 	fi
-elif [ $# -lt 1 ] || [ "$1" == "--help" ]; then
+elif [ $# -lt 1 ] || [ "$1" = "--help" ]; then
 	usage
 else
 	name=$1
@@ -127,10 +131,10 @@ else
 		path="$(awk -v alias="$name" '$1 == alias {print $2}' "$cache")"
 		editor="$(awk -v alias="$name" '$1 == alias {print $3}' "$cache")"
 		cd "$path" || echo ""
-		if [[ -d ".git" ]]; then
+		if [ -d ".git" ]; then
 			git status
 		fi
-		if [[ "$2" != "--cd-only" ]] && [[ "$2" != "-c" ]]; then
+		if [ "$2" != "--cd-only" ] && [ "$2" != "-c" ]; then
 			$editor .
 		fi
 	else
