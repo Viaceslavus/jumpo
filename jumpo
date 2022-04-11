@@ -11,7 +11,7 @@ touch "$cache"
 touch "$tmp_cache"
 
 function config_template() {
-	echo "Alias |    Path    | Editor"
+	echo -e "Alias | Path | Editor\n"
 }
 
 function rm_line() {
@@ -111,12 +111,12 @@ elif [ "$1" = "show" ]; then
 	if [ $# -gt 1 ]; then
 		if alias_exists "$2"; then
 			config_template 
-			awk -v alias="$name" '$1 == alias {print $0}' "$cache"
+			awk -v alias="$name" '$1 == alias {print $0}' "$cache" | column -t
 		fi
 	else
 		if [ -s "$cache" ]; then
 			config_template
-			cat "$cache"
+			column -t < "$cache"
 		fi
 	fi
 elif [ $# -lt 1 ] || [ "$1" == "--help" ]; then
@@ -126,7 +126,7 @@ else
 	if alias_exists "$name"; then
 		path="$(awk -v alias="$name" '$1 == alias {print $2}' "$cache")"
 		editor="$(awk -v alias="$name" '$1 == alias {print $3}' "$cache")"
-		cd "$path"
+		cd "$path" || echo ""
 		if [[ -d ".git" ]]; then
 			git status
 		fi
